@@ -8,5 +8,6 @@ SUBNET_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${MOD01_RG}/provider
 az group deployment create \
     --resource-group $MOD02_RG \
     --template-file "vmfarm_template.json" \
-    --parameters prefix="${PREFIX}" location="${REGION}" subnetId="${SUBNET_ID}"
+    --parameters prefix="${PREFIX}" location="${REGION}" subnetId="${SUBNET_ID}" \
+    --output table
 
