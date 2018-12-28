@@ -9,5 +9,6 @@ az group deployment create \
     --resource-group $MOD02_RG \
     --template-file "vmfarm_template.json" \
     --parameters prefix="${PREFIX}" location="${REGION}" subnetId="${SUBNET_ID}" \
+    --name "vmfarm_template_deployment_$(date '+%s')" \
     --output table
 
