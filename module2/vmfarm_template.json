@@ -100,7 +100,9 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2016-09-01",
             "location": "[parameters('location')]",
-            "dependsOn": [],
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]"
+            ],
             "properties": {
                 "ipConfigurations": [
                     {
