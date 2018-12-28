@@ -25,7 +25,8 @@
     "variables": {
         "vmfarmName": "[concat(parameters('prefix'), '-vmfarm' )]",
         "avSetName": "[concat(variables('vmfarmName'), '-as' )]",
-        "vmfarmLbName": "[concat(variables('vmfarmName'), '-lb' )]"
+        "vmfarmLbName": "[concat(variables('vmfarmName'), '-lb' )]",
+        "vmfarmLbId":"[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]"
     },
     "resources": [
         {
@@ -64,26 +65,6 @@
                         "name": "BackendPool1"
                     }
                 ],
-                "loadBalancingRules": [
-                    {
-                        "properties": {
-                            "frontendIPConfiguration": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/frontendIpConfigurations/LoadBalancerFrontend')]"
-                            },
-                            "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/backendAddressPools/BackendPool1')]"
-                            },
-                            "probe": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/probes/lbprobe')]"
-                            },
-                            "protocol": "Tcp",
-                            "frontendPort": 80,
-                            "backendPort": 80,
-                            "idleTimeoutInMinutes": 15
-                        },
-                        "Name": "lbrule"
-                    }
-                ],
                 "probes": [
                     {
                         "properties": {
@@ -93,6 +74,26 @@
                             "numberOfProbes": 2
                         },
                         "name": "lbprobe"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(variables('vmfarmLbId'), '/frontendIpConfigurations/LoadBalancerFrontend')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(variables('vmfarmLbId'), '/backendAddressPools/BackendPool1')]"
+                            },
+                            "probe": {
+                                "id": "[concat(variables('vmfarmLbId'), '/probes/lbprobe')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 80,
+                            "backendPort": 80,
+                            "idleTimeoutInMinutes": 15
+                        },
+                        "Name": "lbrule"
                     }
                 ]
             }
@@ -107,11 +108,11 @@
             "name": "[concat(variables('vmfarmLbName'), '/', 'SSH-NAT', padLeft(copyIndex(),2,'0'))]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]"
+                "[variables('vmfarmLbId')]"
             ],
             "properties": {
                 "frontendIPConfiguration": {
-                    "id": "[concat( resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/frontendIPConfigurations/LoadBalancerFrontEnd')]"
+                    "id": "[concat( variables('vmfarmLbId'), '/frontendIPConfigurations/LoadBalancerFrontEnd')]"
                 },
                 "protocol": "tcp",
                 "frontendPort": "[copyIndex(22000)]",
@@ -129,8 +130,8 @@
             "apiVersion": "2016-09-01",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]",
-                "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/inboundNatRules/SSH-NAT', padLeft(copyIndex(),2,'0'))]"
+                "[variables('vmfarmLbId')]",
+                "[concat(variables('vmfarmLbId'), '/inboundNatRules/SSH-NAT', padLeft(copyIndex(),2,'0'))]"
             ],
             "properties": {
                 "ipConfigurations": [
@@ -144,12 +145,12 @@
                             "privateIPAddressVersion": "IPv4",
                             "loadBalancerBackendAddressPools": [
                                 {
-                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/backendAddressPools/BackendPool1')]"
+                                    "id": "[concat(variables('vmfarmLbId'), '/backendAddressPools/BackendPool1')]"
                                 }
                             ],
                             "loadBalancerInboundNatRules": [
                                 {
-                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/inboundNatRules/SSH-NAT', copyindex()) ]"
+                                    "id": "[concat(variables('vmfarmLbId'), '/inboundNatRules/SSH-NAT', padLeft(copyIndex(),2,'0')) ]"
                                 }
                             ]
                         }
