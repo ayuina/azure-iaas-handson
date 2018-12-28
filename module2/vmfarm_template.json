@@ -20,7 +20,7 @@
         },
         "vmCount":{
             "type": "int",
-            "defaultValue": "4"
+            "defaultValue": 4
         }
     },
     "variables": {
