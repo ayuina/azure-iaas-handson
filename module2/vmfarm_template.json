@@ -8,8 +8,8 @@
         "location": {
             "type": "string"
         },
-        "subnetId":{
-            "type":"string"
+        "subnetId": {
+            "type": "string"
         },
         "vmCount": {
             "type": "int",
@@ -17,8 +17,9 @@
         }
     },
     "variables": {
-        "vmName":"[concat(parameters('prefix'), '-vmfarm' )]",
-        "avSetName":"[concat(variables('vmName'), '-as' )]"
+        "vmfarmName": "[concat(parameters('prefix'), '-vmfarm' )]",
+        "avSetName": "[concat(variables('vmfarmName'), '-as' )]",
+        "vmfarmLbName": "[concat(variables('vmfarmName'), '-lb' )]"
     },
     "resources": [
         {
@@ -34,18 +35,72 @@
                 "name": "Aligned"
             }
         },
-
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[variables('vmfarmLbName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "LoadBalancerFrontend",
+                        "properties": {
+                            "subnet": {
+                                "id": "[parameters('subnetId')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "BackendPool1"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/frontendIpConfigurations/LoadBalancerFrontend')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/backendAddressPools/BackendPool1')]"
+                            },
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/probes/lbprobe')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 80,
+                            "backendPort": 80,
+                            "idleTimeoutInMinutes": 15
+                        },
+                        "Name": "lbrule"
+                    }
+                ],
+                "probes": [
+                    {
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 80,
+                            "intervalInSeconds": 15,
+                            "numberOfProbes": 2
+                        },
+                        "name": "lbprobe"
+                    }
+                ]
+            }
+        },
         {
             "copy": {
                 "name": "niccopy",
                 "count": "[parameters('vmCount')]"
             },
-            "name": "[concat( variables('vmName'), padLeft(copyIndex(),2,'0'), '-nic')]",
+            "name": "[concat( variables('vmfarmName'), padLeft(copyIndex(),2,'0'), '-nic')]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2016-09-01",
             "location": "[parameters('location')]",
-            "dependsOn": [
-            ],
+            "dependsOn": [],
             "properties": {
                 "ipConfigurations": [
                     {
@@ -55,15 +110,17 @@
                                 "id": "[parameters('subnetId')]"
                             },
                             "privateIPAllocationMethod": "Dynamic",
-                            "privateIPAddressVersion": "IPv4"
+                            "privateIPAddressVersion": "IPv4",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/backendAddressPools/BackendPool1')]"
+                                }
+                            ]
                         }
                     }
                 ]
             }
         }
-
     ],
-    "outputs": {
-    }
-
+    "outputs": {}
 }
