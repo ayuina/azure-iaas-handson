@@ -104,7 +104,7 @@
             },
             "apiVersion": "2018-02-01",
             "type": "Microsoft.Network/loadBalancers/inboundNatRules",
-            "name": "[concat(variables('vmfarmLbName'), '/', 'SSH-NAT', copyIndex())]",
+            "name": "[concat(variables('vmfarmLbName'), '/', 'SSH-NAT', padLeft(copyIndex(),2,'0'))]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]"
@@ -129,7 +129,8 @@
             "apiVersion": "2016-09-01",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]"
+                "[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]",
+                "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/inboundNatRules/SSH-NAT', padLeft(copyIndex(),2,'0'))]"
             ],
             "properties": {
                 "ipConfigurations": [
