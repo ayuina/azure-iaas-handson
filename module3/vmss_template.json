@@ -1,0 +1,144 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "prefix": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "subnetId": {
+            "type": "string"
+        },
+        "vmCount": {
+            "type": "int",
+            "defaultValue": 1
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        }
+    },
+    "variables": {
+        "vmssName": "[concat(parameters('prefix'), '-vmss' )]",
+        "vmssLbName": "[concat(variables('vmssName'), '-lb' )]",
+        "vmssLbId":"[resourceId('Microsoft.Network/loadBalancers', variables('vmssLbName'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-10-01",
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[variables('vmssLbName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "LoadBalancerFrontend",
+                        "properties": {
+                            "subnet": {
+                                "id": "[parameters('subnetId')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "BackendPool1"
+                    }
+                ],
+                "inboundNatPools": [
+                    {
+                        "name": "NatPool1",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(variables('vmssLbId'), '/frontendIPConfigurations/LoadBalancerFrontend')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPortRangeStart": 22000,
+                            "frontendPortRangeEnd": 23000,
+                            "backendPort": 22
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "name": "[variables('vmssName')]",
+            "location": "[parameters('location')]",
+            "apiVersion": "2016-04-30-preview",
+            "dependsOn": [
+                "[variables('vmssLbId')]"
+            ],
+            "sku": {
+                "name": "Standard_D2s_v3",
+                "tier": "Standard",
+                "capacity": "[parameters('vmCount')]"
+            },
+            "properties": {
+                "overprovision": true,
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "virtualMachineProfile": {
+                    "storageProfile": {
+                        "osDisk": {
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite",
+                            "managedDisk": {
+                                "storageAccountType": "Standard_LRS"
+                            }
+                        },
+                        "imageReference": {
+                            "publisher": "Canonical",
+                            "offer": "UbuntuServer",
+                            "sku": "16.04-LTS",
+                            "version": "latest"
+                        }
+                    },
+                    "osProfile": {
+                        "computerNamePrefix": "[variables('vmssName')]",
+                        "adminUsername": "[parameters('adminUsername')]",
+                        "adminPassword": "[parameters('adminPassword')]"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[concat(variables('vmssName'), '-nic')]",
+                                "properties": {
+                                    "primary": true,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat(variables('vmssName'), '-ipconfig')]",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[parameters('subnetId')]"
+                                                },
+                                                "loadBalancerBackendAddressPools": [
+                                                    {
+                                                        "id": "[concat(variables('vmssLbId'), '/backendAddressPools/BackendPool1')]"
+                                                    }
+                                                ],
+                                                "loadBalancerInboundNatPools": [
+                                                    {
+                                                        "id": "[concat(variables('vmssLbId'), '/inboundNatPools/NatPool1')]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
