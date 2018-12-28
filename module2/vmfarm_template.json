@@ -36,7 +36,7 @@
             }
         },
         {
-            "apiVersion": "2018-04-01",
+            "apiVersion": "2017-10-01",
             "type": "Microsoft.Network/loadBalancers",
             "name": "[variables('vmfarmLbName')]",
             "location": "[parameters('location')]",
@@ -91,6 +91,29 @@
                 ]
             }
         },
+        {
+            "copy": {
+                "name": "lbNatLoop",
+                "count": "[parameters('vmCount')]"
+            },
+            "apiVersion": "2018-02-01",
+            "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+            "name": "[concat(variables('vmfarmLbName'), '/', 'RDP-NAT', copyIndex())]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]"
+            ],
+            "properties": {
+                "frontendIPConfiguration": {
+                    "id": "[concat( resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/frontendIPConfigurations/LoadBalancerFrontEnd')]"
+                },
+                "protocol": "tcp",
+                "frontendPort": "[copyIndex(22000)]",
+                "backendPort": 22,
+                "enableFloatingIP": false
+            }
+        },
+
         {
             "copy": {
                 "name": "niccopy",
