@@ -8,24 +8,15 @@
         "location": {
             "type": "string"
         },
-        "vnetRgName":{
-            "type": "string"
+        "subnetId":{
+            "type":"string"
         },
-        "vnetName":{
-            "type": "string"
-        },
-        "subnetName":{
-            "type": "string",
-            "defaultValue": "vmfarm"
-        },
-        "vmCount":{
+        "vmCount": {
             "type": "int",
             "defaultValue": 4
         }
     },
     "variables": {
-        "vnetId":"[resourceId(parameters('vnetRgName'),'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
-        "subnetId":"[concat(variables('vnetId'),'/subnets/', parameters('subnetName'))]",
         "vmName":"[concat(parameters('prefix'), '-vmfarm' )]"
     },
     "resources": [
@@ -46,7 +37,7 @@
                         "name": "ipconfig1",
                         "properties": {
                             "subnet": {
-                                "id": "[variables('subnetId')]"
+                                "id": "[parameters('subnetId')]"
                             },
                             "privateIPAllocationMethod": "Dynamic",
                             "privateIPAddressVersion": "IPv4"

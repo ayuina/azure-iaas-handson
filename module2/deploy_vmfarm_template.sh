@@ -1,12 +1,11 @@
 #!/bin/bash
 
+SUBSCRIPTION_ID=$(az account show --query id)
 VNET_NAME="${PREFIX}-vnet"
 SUBNET_NAME="vmfarm"
+SUBNET_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${MOD01_RG}/providers/Microsoft.Network/virtualNetworks/${VNET_NAME}/subnets/${SUBNET_NAME}"
 
-az network vnet subnet create \
-    --resource-group $MOD01_RG \
-    --vnet-name $VNET_NAME \
-    --name $SUBNET_NAME \
-    --address-prefixes "10.12.26.64/26" \
-    --output table
-
+az group deployment validate \
+    --resource-group $MOD02_RG \
+    --template-file "vmfarm_template.json" \
+    --parameters prefix="${PREFIX}" location="${REGION}" subnetId="${SUBNET_ID}"
