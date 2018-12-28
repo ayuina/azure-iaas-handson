@@ -1,0 +1,63 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "prefix": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "vnetRgName":{
+            "type": "string"
+        },
+        "vnetName":{
+            "type": "string"
+        },
+        "subnetName":{
+            "type": "string",
+            "defaultValue": "vmfarm"
+        },
+        "vmCount":{
+            "type": "int",
+            "defaultValue": "4"
+        }
+    },
+    "variables": {
+        "vnetId":"[resourceId(parameters('vnetRgName'),'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+        "subnetId":"[concat(variables('vnetId'),'/subnets/', parameters('subnetName'))]",
+        "vmName":"[concat(parameters('prefix'), '-vmfarm' )]"
+    },
+    "resources": [
+        {
+            "copy": {
+                "name": "niccopy",
+                "count": "[parameters('vmCount')]"
+            },
+            "name": "[concat( variables('vmName'), padLeft(copyIndex(),2,'0'), '-nic')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2016-09-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetId')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ]
+            }
+        }
+
+    ],
+    "outputs": {
+    }
+
+}
