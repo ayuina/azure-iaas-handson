@@ -88,7 +88,7 @@
                     {
                         "properties": {
                             "protocol": "Tcp",
-                            "port": 80,
+                            "port": 22,
                             "intervalInSeconds": 15,
                             "numberOfProbes": 2
                         },
@@ -104,7 +104,7 @@
             },
             "apiVersion": "2018-02-01",
             "type": "Microsoft.Network/loadBalancers/inboundNatRules",
-            "name": "[concat(variables('vmfarmLbName'), '/', 'RDP-NAT', copyIndex())]",
+            "name": "[concat(variables('vmfarmLbName'), '/', 'SSH-NAT', copyIndex())]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName'))]"
@@ -144,6 +144,11 @@
                             "loadBalancerBackendAddressPools": [
                                 {
                                     "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/backendAddressPools/BackendPool1')]"
+                                }
+                            ],
+                            "loadBalancerInboundNatRules": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vmfarmLbName')), '/inboundNatRules/SSH-NAT', copyindex()) ]"
                                 }
                             ]
                         }
