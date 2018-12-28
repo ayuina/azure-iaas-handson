@@ -1,0 +1,19 @@
+#!/bin/bash
+
+VNET_NAME="${PREFIX}-vnet"
+SUBNET_NAME="vmss"
+
+az network vnet subnet create \
+    --resource-group $MOD01_RG \
+    --vnet-name $VNET_NAME \
+    --name $SUBNET_NAME \
+    --address-prefixes "10.12.26.128/26" \
+    --output table
+
+echo "query subnet id ..."
+az network vnet subnet show \
+    --resource-group $MOD01_RG \
+    --vnet-name $VNET_NAME \
+    --name $SUBNET_NAME \
+    --query id
+
