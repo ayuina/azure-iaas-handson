@@ -13,7 +13,7 @@
         },
         "vmCount": {
             "type": "int",
-            "defaultValue": 1
+            "defaultValue": 2
         },
         "adminUsername": {
             "type": "string"
