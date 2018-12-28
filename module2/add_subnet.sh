@@ -10,3 +10,10 @@ az network vnet subnet create \
     --address-prefixes "10.12.26.64/26" \
     --output table
 
+echo "query subnet id ..."
+az network vnet subnet show \
+    --resource-group $MOD01_RG \
+    --vnet-name $VNET_NAME \
+    --name $SUBNET_NAME \
+    --query id
+
