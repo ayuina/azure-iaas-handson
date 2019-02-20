@@ -12,9 +12,9 @@ az vm deallocate \
 echo "attaching data disk to virtual machine ..."
 az vm disk attach \
     --resource-group $MOD01_RG \
-    --disk $DATA_DISK_NAME \
+    --name $DATA_DISK_NAME \
     --vm-name $JUMPBOX_VM_NAME \
-    --size-gb 255 \
+    --size-gb 512 \
     --sku Premium_LRS \
     --new
 
