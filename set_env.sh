@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PREFIX="ainaba"
+export PREFIX="yourPrefix"
 
 export MOD01_RG="${PREFIX}-mod01-rg"
 export MOD02_RG="${PREFIX}-mod02-rg"
